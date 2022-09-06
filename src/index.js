@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { resolve as resolvePath, basename, extname } from 'path';
+import { resolve as resolvePath, basename, extname } from 'node:path';
 import Handlebars from 'handlebars';
 import minimist from 'minimist';
 import glob from 'glob-promise';
@@ -23,7 +23,7 @@ export async function resolveModuleOrGlob(path, cwd = process.cwd()) {
   try {
     debug(`Trying to require ${ path } as a node_module`);
     return [ await resolve(path, { basedir: cwd }) ];
-  } catch (errorInCatch) {
+  } catch {
     debug(`${ path } is glob or actual file, expanding...`);
     return glob(path, { cwd });
   }
@@ -34,15 +34,15 @@ export async function expandGlobList(globs) {
     globs = [ globs ];
   }
   if (Array.isArray(globs) === false) {
-    throw new Error(`expandGlobList expects Array or String, given ${ typeof globs }`);
+    throw new TypeError(`expandGlobList expects Array or String, given ${ typeof globs }`);
   }
   return (await Promise.all(
     globs.map((path) => resolveModuleOrGlob(path))
-  )).reduce((total, current) => total.concat(current), []);
+  )).flat();
 }
 
 export function addHandlebarsHelpers(files) {
-  files.forEach((file) => {
+  for (const file of files) {
     debug(`Requiring ${ file }`);
     const handlebarsHelper = require(file); // eslint-disable-line global-require
     if (handlebarsHelper && typeof handlebarsHelper.register === 'function') {
@@ -51,7 +51,7 @@ export function addHandlebarsHelpers(files) {
     } else {
       console.error(`WARNING: ${ file } does not export a 'register' function, cannot import`);
     }
-  });
+  }
 }
 
 export async function addHandlebarsPartials(files) {
@@ -66,7 +66,7 @@ export async function addObjectsToData(objects) {
     objects = [ objects ];
   }
   if (Array.isArray(objects) === false) {
-    throw new Error(`addObjectsToData expects Array or String, given ${ typeof objects }`);
+    throw new TypeError(`addObjectsToData expects Array or String, given ${ typeof objects }`);
   }
   const dataSets = [];
   const files = await expandGlobList(objects.filter((objectLocal) => {
@@ -74,7 +74,7 @@ export async function addObjectsToData(objects) {
       debug(`Attempting to parse ${ objectLocal } as JSON`);
       dataSets.push(JSON.parse(objectLocal));
       return false;
-    } catch (errorInCatch) {
+    } catch  {
       return true;
     }
   }));
@@ -92,7 +92,7 @@ export async function getStdinData() {
   try {
     debug(`Attempting to parse ${ text } as JSON`);
     return JSON.parse(text);
-  } catch (errorInCatch) {
+  } catch {
     throw new Error('stdin cannot be parsed as JSON');
   }
 }
@@ -135,7 +135,7 @@ if (require.main === module) {
   debug('Parsed argv', options);
   if (options.version) {
     console.error(packageJson.version);
-  } else if (options.help || !options._ || !options._.length) {
+  } else if (options.help || !options._ || options._.length > 0) {
     console.error(`
     Usage:
       hbs --version
@@ -185,8 +185,8 @@ if (require.main === module) {
     Promise.all(setup)
       .then(() => expandGlobList(options._))
       .then((files) => renderHandlebarsTemplate(files, options.output, options.extension, dataLocal, options.stdout))
-      .catch((errorLocal) => {
-        console.error(errorLocal.stack || errorLocal);
+      .catch((error) => {
+        console.error(error.stack || error);
         process.exit(1);
       });
   }
