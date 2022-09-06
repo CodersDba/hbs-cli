@@ -29,7 +29,8 @@
     "test:verify:2": "diff test/test-2.html test/verify-1.html",
     "test:run:3": "cat ./test/data.json | node . -s  -H ./test/br.js  --stdin test/test-1.hbs > test/test-3.html",
     "test:verify:3": "diff test/test-3.html test/verify-1.html",
-    "watch": "npm run prepublish -- -w"
+    "watch": "npm run prepublish -- -w",
+    "prepare": "husky install"
   },
   "config": {},
   "husky": {
