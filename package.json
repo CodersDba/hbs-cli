@@ -18,22 +18,23 @@
     "url": "git+ssh://git@github.com/keithamus/hbs-cli.git"
   },
   "scripts": {
-    "lint": "eslint src --ignore-path .gitignore",
+    "lint": "eslint src test --ignore-path .gitignore",
     "prepublish": "babel src -d lib",
     "pretest": "npm run lint",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "test": "npm run test:run:1 && npm run test:verify:1 && npm run test:run:2 && npm run test:verify:2 && npm run test:run:3 && npm run test:verify:3",
-    "test:run:1": "node . -H handlebars-helper-br -D ./test/data.json -o test test/test-1.hbs",
+    "test:run:1": "node . -H handlebars-helper-br -H ./test/br.js -D ./test/data.json -o test test/test-1.hbs",
     "test:verify:1": "diff test/test-1.html test/verify-1.html",
-    "test:run:2": "node . -s -H handlebars-helper-br -D ./test/data.json test/test-1.hbs > test/test-2.html",
+    "test:run:2": "node . -s -H handlebars-helper-br  -H ./test/br.js -D ./test/data.json test/test-1.hbs > test/test-2.html",
     "test:verify:2": "diff test/test-2.html test/verify-1.html",
-    "test:run:3": "cat ./test/data.json | node . -s -H handlebars-helper-br --stdin test/test-1.hbs > test/test-3.html",
+    "test:run:3": "cat ./test/data.json | node . -s  -H ./test/br.js  --stdin test/test-1.hbs > test/test-3.html",
     "test:verify:3": "diff test/test-3.html test/verify-1.html",
     "watch": "npm run prepublish -- -w"
   },
-  "config": {
-    "ghooks": {
-      "commit-msg": "validate-commit-msg",
+  "config": {},
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "pre-commit": "npm test"
     }
   },
@@ -74,6 +75,7 @@
     "fs-promise": "^0.5.0",
     "glob-promise": "^1.0.4",
     "handlebars": "^4.0.5",
+    "husky": "^8.0.1",
     "lodash.merge": "^4.6.0",
     "minimist": "^1.2.0",
     "mkdirp-then": "^1.2.0",
@@ -84,15 +86,14 @@
     "@babel/core": "^7.19.0",
     "@babel/eslint-parser": "^7.18.9",
     "@babel/preset-env": "^7.19.0",
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
     "babel-eslint": "^7.1.0",
     "eslint": "^8.23.0",
-    "eslint-config-strict": "^10.0.2",
+    "eslint-config-strict": "^14.0.1",
     "eslint-plugin-filenames": "^1.3.2",
     "get-stdin": "^8.0.0",
-    "ghooks": "^1.0.1",
-    "handlebars-helper-br": "^0.1.0",
     "semantic-release": "^4.3.5",
-    "travis-after-all": "^1.4.4",
-    "validate-commit-msg": "^2.8.2"
+    "travis-after-all": "^1.4.4"
   }
 }

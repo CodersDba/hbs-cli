@@ -25,7 +25,7 @@ export async function resolveModuleOrGlob(path, cwd = process.cwd()) {
     return [ await resolve(path, { basedir: cwd }) ];
   } catch (errorInCatch) {
     debug(`${ path } is glob or actual file, expanding...`);
-    return await glob(path, { cwd });
+    return glob(path, { cwd });
   }
 }
 
@@ -118,19 +118,8 @@ export async function renderHandlebarsTemplate(
 if (require.main === module) {
   const options = minimist(process.argv.slice(2), {
     /* eslint-disable id-blacklist */
-    string: [
-      'output',
-      'extension',
-      'partial',
-      'helper',
-      'data',
-    ],
-    boolean: [
-      'version',
-      'help',
-      'stdout',
-      'stdin',
-    ],
+    string: [ 'output', 'extension', 'partial', 'helper', 'data' ],
+    boolean: [ 'version', 'help', 'stdout', 'stdin' ],
     alias: {
       'v': 'version',
       'h': 'help',
